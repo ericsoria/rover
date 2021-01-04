@@ -3,41 +3,55 @@
 
 namespace App\Rover;
 
+use Illuminate\Database\Eloquent\Model;
 
-class Chunk
+class Chunk extends Model
 {
-    private array $chunk = [];
-    private int $size;
-    private int $y;
-    private int $x;
-    private string $direction;
+    protected $casts = [
+        'chunk' => 'array',
+    ];
 
-    public function __construct(?int $size, ?int $y, ?int $x, ?string $direction)
+    public static function create(?int $size, ?int $y, ?int $x, ?string $direction) : self
     {
-        $this->size = is_null($size) ? 25 : $size;
-        $this->y = is_null($y) ? 1 : $y;
-        $this->x = is_null($x) ? 2 : $x;
-        $this->direction = is_null($direction) ? 'n' : $direction;
-    }
+        $chunk = new Chunk();
 
-    public function create() : void
-    {
-        for ($y = 1; $this->size >= $y; $y++) {
-            for ($x = 1; $this->size >= $x; $x++) {
-                $this->chunk[$y][$x] = !random_int(0, 10) < 8 ? '1' : '0';
-                //$this->chunk[$y][$x] = 1;
+        $chunk->size = is_null($size) ? 25 : $size;
+        $chunk->y = is_null($y) ? 1 : $y;
+        $chunk->x = is_null($x) ? 2 : $x;
+        $chunk->direction = is_null($direction) ? 'n' : $direction;
+
+        $json = [];
+
+        for ($y = 1; $chunk->size >= $y; $y++) {
+            for ($x = 1; $chunk->size >= $x; $x++) {
+                $json[$y][$x] = !random_int(0, 10) < 8 ? '1' : '0';
             }
         }
 
-        if (isset($this->chunk[$this->y][$this->x])) {
-            $this->chunk[$this->y][$this->x] = 'X';
+        if (isset($json[$chunk->y][$chunk->x])) {
+            $json[$chunk->y][$chunk->x] = 'X';
         }
+
+        $chunk->chunk = $json;
+
+        return $chunk;
+    }
+
+    public function setChunkAttribute(array $chunk)
+    {
+        $this->attributes['chunk'] = json_encode($chunk);
+    }
+
+    public function getChunkAttribute()
+    {
+        return json_decode($this->attributes['chunk'], true);
     }
 
     public function html() : string
     {
+        $chunk = $this->getAttribute('chunk');
         $html = '<table><tbody>';
-        foreach ($this->chunk as $col => $rows) {
+        foreach ($chunk as $col => $rows) {
             $html .= '<tr>';
             foreach ($rows as $row) {
                 $class = 'green';
@@ -67,7 +81,7 @@ class Chunk
 
     public function chunk(): array
     {
-        return $this->chunk;
+        return $this->getAttribute('chunk');
     }
 
     public function size(): int
@@ -87,44 +101,69 @@ class Chunk
 
     public function incrementY() : bool
     {
-        if (! isset($this->chunk[$this->y+1][$this->x])) return false;
-        if (! $this->chunk[$this->y+1][$this->x]) return false;
+        $chunk = $this->getAttribute('chunk');
 
+        if (! isset($chunk[$this->y+1][$this->x])) return false;
+
+        if (! $chunk[$this->y+1][$this->x]) return false;
+
+        $chunk[$this->y][$this->x] = '1';
         $this->y = $this->y+1;
-        $this->chunk[$this->y][$this->x] = 'X';
+        $chunk[$this->y][$this->x] = 'X';
+
+        $this->chunk = $chunk;
 
         return true;
     }
 
     public function incrementX()
     {
-        if (! isset($this->chunk[$this->y][$this->x+1])) return false;
-        if (! $this->chunk[$this->y][$this->x+1]) return false;
+        $chunk = $this->getAttribute('chunk');
 
+        if (! isset($chunk[$this->y][$this->x+1])) return false;
+
+        if (! $chunk[$this->y][$this->x+1]) return false;
+
+        $chunk[$this->y][$this->x] = '1';
         $this->x = $this->x+1;
-        $this->chunk[$this->y][$this->x] = 'X';
+        $chunk[$this->y][$this->x] = 'X';
+
+        $this->chunk = $chunk;
 
         return true;
     }
 
     public function decrementY()
     {
-        if (! isset($this->chunk[$this->y-1][$this->x])) return false;
-        if (! $this->chunk[$this->y-1][$this->x]) return false;
+        $chunk = $this->getAttribute('chunk');
 
+        if (! isset($chunk[$this->y-1][$this->x])) return false;
+
+        if (! $chunk[$this->y-1][$this->x]) return false;
+
+        $chunk[$this->y][$this->x] = '1';
         $this->y = $this->y-1;
-        $this->chunk[$this->y][$this->x] = 'X';
+        $chunk[$this->y][$this->x] = 'X';
+
+        $this->chunk = $chunk;
 
         return true;
     }
 
     public function decrementX()
     {
-        if (! isset($this->chunk[$this->y][$this->x-1])) return false;
-        if (! $this->chunk[$this->y][$this->x-1]) return false;
+        $chunk = $this->getAttribute('chunk');
 
+        if (! isset($chunk[$this->y][$this->x-1])) return false;
+
+        if (! $chunk[$this->y][$this->x-1]) return false;
+
+        $chunk[$this->y][$this->x] = '1';
         $this->x = $this->x-1;
-        $this->chunk[$this->y][$this->x] = 'X';
+        $chunk[$this->y][$this->x] = 'X';
+
+        $this->chunk = $chunk;
+
         return true;
     }
 

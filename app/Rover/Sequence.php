@@ -23,11 +23,11 @@ class Sequence
         $length = strlen($sequence);
 
         for ($i = 0; $length > $i; $i++) {
-            if (! in_array($sequence[$i], self::ALLOWED_COMMANDS)) {
+            if (! in_array(strtoupper($sequence[$i]), self::ALLOWED_COMMANDS)) {
                 throw new \Exception('Commands sequence is not valid; must be "F", "L", "R"');
             }
 
-            $this->sequence[] = $sequence[$i];
+            $this->sequence[] = strtoupper($sequence[$i]);
         }
     }
 

@@ -52,7 +52,7 @@
             <div class="col-12">
                 <div class="form-group">
                     <label for="direction">Sequence</label>
-                    <textarea class="form-control" id="sequence" name="sequence">{{ $sequence }}</textarea>
+                    <textarea class="form-control" id="sequence" name="sequence"></textarea>
                     <small class="form-text text-muted">Only is valid 'F', forward; 'L', left and 'R', right</small>
                 </div>
             </div>
@@ -66,12 +66,31 @@
             </div>
         </div>
     </form>
+    <div class="row">
+        <div class="col-12">
+            @empty(!$log)
+            <div class="log">
+                @foreach($log as $l)
+                    <p>{{ $l }}</p>
+                @endforeach
+            </div>
+            @endempty
+        </div>
+    </div>
 </div>
 
 </body>
 <style>
     table, td {
         border: 1px solid #dedede;
+    }
+
+    .log {
+        margin-top: 10px;
+        background-color: #1a202c;
+        color: #f7fafc;
+        width: 100%;
+        padding: 10px;
     }
 
     td {
@@ -89,22 +108,6 @@
 
     td.red {
         background-color: red;
-    }
-
-    td.up {
-        border-top: 2px solid black;
-    }
-
-    td.down {
-        border-bottom: 2px solid black;
-    }
-
-    td.right {
-        border-right: 2px solid black;
-    }
-
-    td.left {
-        border-left: 2px solid black;
     }
 
     .container {

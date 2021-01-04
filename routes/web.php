@@ -14,4 +14,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [RoverController::class, 'index']);
+Route::get('/', RoverController::class);

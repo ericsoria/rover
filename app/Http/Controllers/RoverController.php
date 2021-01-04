@@ -4,39 +4,50 @@ namespace App\Http\Controllers;
 
 use App\Rover\Chunk;
 use App\Rover\Rover;
+use App\Rover\RoverLog;
 use App\Rover\Sequence;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 
 class RoverController extends Controller
 {
-    public function index(Request $request)
+    public function __invoke(Request $request)
     {
-        $request->session()->start();
+        $chunk = $this->getChunk($request);
+        $commands = $request->sequence;
+        $log = new RoverLog();
 
-        $chunk = $request->session()->get('chunk');
-
-        if (is_null($chunk)) {
-            $chunk = new Chunk($request->size, $request->y, $request->x, $request->d);
-            $chunk->create();
+        if (! is_null($commands)) {
+            (new Rover(
+                $chunk,
+                new Sequence($commands),
+                $log
+            ))->run();
         }
 
-        $sequence = null;
-        if (! is_null($request->sequence)) {
-            $sequence = new Sequence($request->sequence);
-
-            $rover = new Rover($chunk, $sequence);
-            $rover->run();
-        }
-
-
-        $request->session()->put('chunk', $chunk);
-        $request->session()->save();
-        $request->session();
+        $chunk->save();
 
         return view('rover', [
             'chunk' => $chunk,
-            'sequence' => ! is_null($sequence) ? implode('', $sequence->commands()) : '',
+            'log' => $log->log()
         ]);
+    }
+
+    private function getChunk($request) : Chunk
+    {
+        $chunk = is_null(Chunk::first())
+            ? Chunk::create($request->size, $request->y, $request->x, $request->d)
+            : Chunk::first();
+
+        if ($chunk->size() != $request->size
+            || $chunk->y() != $request->y
+            || $chunk->x() != $request->x
+            || $chunk->d() != $request->d
+        )
+        {
+            $chunk->delete();
+            $chunk = Chunk::create($request->size, $request->y, $request->x, $request->d);
+        }
+
+        return $chunk;
     }
 }
